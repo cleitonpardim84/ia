@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Curso Onewrap | Car Wrap e PPF</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="container">
+        <p class="tag">ONEWRAP TREINAMENTO</p>
+        <h1>Curso de Car Wrap e PPF</h1>
+        <p class="subtitle">
+          Aprenda aplicacao profissional de envelopamento e pintura protegida
+          em uma formacao pratica com acompanhamento tecnico.
+        </p>
+        <div class="hero-info">
+          <span>Horario: Sabados, das 10:00 as 18:00</span>
+          <span>Duracao: 4 sabados</span>
+        </div>
+        <a href="#inscricao" class="cta">Quero me inscrever</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <h2>O que voce vai aprender</h2>
+          <div class="grid">
+            <article class="card">
+              <h3>Modulo Car Wrap</h3>
+              <ul>
+                <li>Preparacao de superficie e limpeza correta</li>
+                <li>Tecnicas de corte, esticamento e acabamento</li>
+                <li>Aplicacao em curvas e recortes complexos</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Modulo PPF</h3>
+              <ul>
+                <li>Introducao ao Paint Protection Film</li>
+                <li>Posicionamento e alinhamento de filme</li>
+                <li>Remocao de bolhas e acabamento premium</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container">
+          <h2>Cronograma</h2>
+          <p>Aulas presenciais aos sabados, das 10:00 as 18:00.</p>
+          <ol class="schedule">
+            <li><strong>Sabado 1:</strong> Fundamentos, ferramentas e materiais</li>
+            <li><strong>Sabado 2:</strong> Tecnicas praticas de Car Wrap</li>
+            <li><strong>Sabado 3:</strong> Tecnicas praticas de PPF</li>
+            <li><strong>Sabado 4:</strong> Projeto final e refinamento tecnico</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section" id="inscricao">
+        <div class="container">
+          <h2>Formulario de inscricao</h2>
+          <p>
+            Preencha os dados abaixo para garantir sua vaga no curso Onewrap.
+          </p>
+          <form id="form-inscricao" class="form">
+            <label for="nome">Nome completo</label>
+            <input id="nome" name="nome" type="text" required />
+
+            <label for="whatsapp">WhatsApp</label>
+            <input
+              id="whatsapp"
+              name="whatsapp"
+              type="tel"
+              placeholder="(00) 00000-0000"
+              required
+            />
+
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" required />
+
+            <label for="experiencia">Nivel de experiencia</label>
+            <select id="experiencia" name="experiencia" required>
+              <option value="">Selecione</option>
+              <option value="iniciante">Iniciante</option>
+              <option value="intermediario">Intermediario</option>
+              <option value="avancado">Avancado</option>
+            </select>
+
+            <label for="mensagem">Mensagem (opcional)</label>
+            <textarea id="mensagem" name="mensagem" rows="4"></textarea>
+
+            <button type="submit">Enviar inscricao</button>
+            <p id="feedback" class="feedback" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>Onewrap | Curso de Car Wrap e PPF</p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
