@@ -104,6 +104,44 @@ window.APP_CONFIG = {
 - Valide que HTTPS foi emitido.
 - Em Supabase Authentication > URL Configuration (se usar auth nativo depois), adicione o novo dominio em Site URL.
 
+## Dominio real: `shope.pt` (Hostinger)
+
+Fluxo recomendado para seu caso:
+
+1. Faça deploy do frontend em Vercel ou Netlify.
+2. Copie o alvo DNS fornecido pela plataforma.
+3. Na Hostinger (zona DNS de `shope.pt`), configure:
+   - `@` (root): registro `A` ou `ALIAS/ANAME` conforme instrução da plataforma.
+   - `www`: registro `CNAME` para o host da plataforma.
+4. No painel da hospedagem (Vercel/Netlify), adicione:
+   - `shope.pt`
+   - `www.shope.pt`
+5. Ative redirecionamento canônico (ex.: `www.shope.pt` -> `shope.pt`).
+6. Aguarde SSL automático e valide:
+   - `https://shope.pt`
+   - `https://www.shope.pt`
+
+Checklist rápido de DNS para Hostinger:
+
+- TTL padrão (300s ou 600s).
+- Não manter registros `A/CNAME` antigos conflitantes para `@` e `www`.
+- Após propagação, validar com `dig shope.pt` e `dig www.shope.pt`.
+
+## SQL/Migrações Supabase (prontas no repositório)
+
+Arquivos criados em `supabase/migrations`:
+
+- `20260428173000_estamparia_core_schema.sql`
+  - Cria enums, tabelas de domínio (`app_users`, `suppliers`, `sizes`, `colors`, `stock_items`, `orders`, `stock_movements`, `financial_entries`, `app_state`)
+  - Cria índices de desempenho
+  - Cria triggers de `updated_at`
+  - Aplica RLS e policies por perfil (`admin`, `atendente`, `producao`)
+  - Inclui grants explícitos para Data API
+- `20260428173100_estamparia_seed_and_grants.sql`
+  - Seeds iniciais de fornecedores, tamanhos, cores e stock
+
+Se preferir aplicar manualmente no SQL Editor do Supabase, execute primeiro o arquivo `...core_schema.sql` e depois `...seed_and_grants.sql`.
+
 ## Executar localmente
 
 Como o projeto e estatico, rode:
