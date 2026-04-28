@@ -328,6 +328,12 @@ th {
   border-color: #ffd1d8;
 }
 
+.sync-badge.offline {
+  background: #fff4e4;
+  color: #7c4c00;
+  border-color: #f5d18f;
+}
+
 .inline-control {
   display: flex;
   gap: 6px;

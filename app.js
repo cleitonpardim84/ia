@@ -1,13 +1,4 @@
-const STORAGE_KEY = "estamparia_lisboa_v1";
-const DEFAULT_STATE_ID = "main";
-const SUPABASE_TABLE = "app_state";
-const SUPABASE_SCHEMA = "public";
-
-const USERS = [
-  { username: "admin", password: "admin123", role: "admin", name: "Admin Geral" },
-  { username: "atendente", password: "atendente123", role: "atendente", name: "Atendente" },
-  { username: "producao", password: "producao123", role: "producao", name: "Operador Producao" },
-];
+const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || "./api/index.php";
 
 const STATUS_DEFS = [
   { id: "em_producao", label: "Em producao" },
@@ -39,40 +30,16 @@ const ROLE_LABELS = {
 function createInitialState() {
   return {
     session: null,
-    suppliers: [
-      { id: "SUP-1", name: "Textil Alfama", contact: "+351 910 000 001", city: "Lisboa" },
-      { id: "SUP-2", name: "Fios Tejo", contact: "+351 910 000 002", city: "Lisboa" },
-    ],
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Branco", "Preto", "Azul Navy"],
-    stockItems: [
-      {
-        id: "STK-1",
-        name: "T-shirt Basica",
-        size: "M",
-        color: "Branco",
-        supplierId: "SUP-1",
-        quantity: 120,
-        unitCost: 3.2,
-        reorderLevel: 25,
-      },
-      {
-        id: "STK-2",
-        name: "Hoodie",
-        size: "L",
-        color: "Preto",
-        supplierId: "SUP-2",
-        quantity: 60,
-        unitCost: 8.5,
-        reorderLevel: 15,
-      },
-    ],
+    suppliers: [],
+    sizes: [],
+    colors: [],
+    stockItems: [],
     orders: [],
     lossEntries: [],
     counters: {
       order: 1,
-      stock: 3,
-      supplier: 3,
+      stock: 1,
+      supplier: 1,
       loss: 1,
     },
   };
@@ -81,7 +48,7 @@ function createInitialState() {
 function normalizeState(rawState) {
   const base = createInitialState();
   const source = rawState && typeof rawState === "object" ? rawState : {};
-  const normalized = {
+  return {
     ...base,
     ...source,
     suppliers: Array.isArray(source.suppliers) ? source.suppliers : base.suppliers,
@@ -95,152 +62,27 @@ function normalizeState(rawState) {
       ...(source.counters && typeof source.counters === "object" ? source.counters : {}),
     },
   };
-
-  if (!normalized.session || !USERS.some((user) => user.username === normalized.session.username)) {
-    normalized.session = null;
-  }
-
-  return normalized;
 }
 
-function loadLocalState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return createInitialState();
-    }
-    return normalizeState(JSON.parse(raw));
-  } catch (error) {
-    return createInitialState();
-  }
-}
+async function apiCall(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
 
-function saveLocalState(nextState) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
-}
+  const contentType = response.headers.get("content-type") || "";
+  const payload = contentType.includes("application/json") ? await response.json() : {};
 
-function supabaseConfig() {
-  const config = window.APP_CONFIG || {};
-  const url = String(config.SUPABASE_URL || "").trim();
-  const anonKey = String(config.SUPABASE_ANON_KEY || "").trim();
-  if (!url || !anonKey) {
-    return null;
-  }
-  return { url, anonKey };
-}
-
-function hasSupabaseClient() {
-  return Boolean(window.supabase && typeof window.supabase.createClient === "function");
-}
-
-function buildSupabaseClient() {
-  const config = supabaseConfig();
-  if (!config || !hasSupabaseClient()) {
-    return null;
-  }
-  return window.supabase.createClient(config.url, config.anonKey);
-}
-
-async function loadRemoteState() {
-  if (!supabaseClient) {
-    return null;
-  }
-  const { data, error } = await supabaseClient
-    .from(SUPABASE_TABLE)
-    .select("id, payload")
-    .eq("id", DEFAULT_STATE_ID)
-    .maybeSingle();
-  if (error) {
-    throw error;
-  }
-  if (!data || !data.payload) {
-    return null;
-  }
-  return normalizeState(data.payload);
-}
-
-async function saveRemoteState(nextState) {
-  if (!supabaseClient) {
-    return;
-  }
-  const payload = normalizeState(nextState);
-  const { error } = await supabaseClient
-    .from(SUPABASE_TABLE)
-    .upsert(
-      {
-        id: DEFAULT_STATE_ID,
-        payload,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "id" }
-    );
-  if (error) {
-    throw error;
-  }
-}
-
-function updateSyncBadge(mode, message) {
-  if (!syncStatusEl) {
-    return;
-  }
-  syncStatusEl.className = `sync-badge ${mode}`;
-  syncStatusEl.textContent = message;
-}
-
-async function loadState() {
-  const localState = loadLocalState();
-  if (!supabaseClient) {
-    syncMode = "local";
-    updateSyncBadge("local", "Modo local");
-    return localState;
+  if (!response.ok) {
+    const message = payload?.error || `Erro HTTP ${response.status}`;
+    throw new Error(message);
   }
 
-  try {
-    const remoteState = await loadRemoteState();
-    if (remoteState) {
-      syncMode = "remote";
-      updateSyncBadge("remote", "Supabase ligado");
-      saveLocalState(remoteState);
-      return remoteState;
-    }
-
-    await saveRemoteState(localState);
-    syncMode = "remote";
-    updateSyncBadge("remote", "Supabase ligado");
-    return localState;
-  } catch (error) {
-    console.error("Falha ao carregar do Supabase:", error);
-    syncMode = "fallback";
-    updateSyncBadge("error", "Erro Supabase - fallback local");
-    return localState;
-  }
-}
-
-function saveState() {
-  const snapshot = normalizeState(state);
-  saveLocalState(snapshot);
-  if (!supabaseClient) {
-    syncMode = "local";
-    updateSyncBadge("local", "Modo local");
-    return;
-  }
-  saveRemoteState(snapshot)
-    .then(() => {
-      syncMode = "remote";
-      updateSyncBadge("remote", "Supabase ligado");
-    })
-    .catch((error) => {
-      console.error("Falha ao gravar no Supabase:", error);
-      syncMode = "fallback";
-      updateSyncBadge("error", "Erro Supabase - fallback local");
-      showFlash("Gravado localmente. Falha na sincronizacao Supabase.", "error");
-    });
-}
-
-function getNextId(counterKey, prefix) {
-  const currentValue = Number(state.counters[counterKey] || 1);
-  state.counters[counterKey] = currentValue + 1;
-  return `${prefix}-${currentValue}`;
+  return payload;
 }
 
 function escapeHtml(value) {
@@ -337,7 +179,7 @@ function ensureValidView() {
 }
 
 function supplierById(supplierId) {
-  return state.suppliers.find((supplier) => supplier.id === supplierId);
+  return state.suppliers.find((supplier) => String(supplier.id) === String(supplierId));
 }
 
 function populateSelect(element, values, mapper) {
@@ -424,9 +266,8 @@ function renderDashboard() {
     { label: "Resultado liquido", value: formatCurrency(finance.netResult) },
   ];
 
-  let alertHtml = "";
-  if (lowStockItems.length) {
-    alertHtml = `
+  const alertHtml = lowStockItems.length
+    ? `
       <div class="alert warn">
         <strong>Atencao ao stock:</strong>
         ${lowStockItems
@@ -438,10 +279,8 @@ function renderDashboard() {
           )
           .join(", ")}
       </div>
-    `;
-  } else {
-    alertHtml = '<div class="alert ok">Sem alertas de stock minimo neste momento.</div>';
-  }
+    `
+    : '<div class="alert ok">Sem alertas de stock minimo neste momento.</div>';
 
   const roleTip =
     state.session?.role === "atendente"
@@ -698,55 +537,61 @@ function renderApp() {
   renderViewVisibility();
 }
 
-function tryConsumeStockForOrder(order) {
-  let remaining = Number(order.quantity);
-  const candidates = state.stockItems.filter(
-    (item) =>
-      item.size === order.size && item.color === order.color && item.supplierId === order.supplierId && Number(item.quantity) > 0
-  );
-  if (!candidates.length) {
-    return "Sem stock correspondente para abater automaticamente.";
-  }
-  for (const item of candidates) {
-    if (remaining <= 0) {
-      break;
-    }
-    const available = Number(item.quantity);
-    const used = Math.min(available, remaining);
-    item.quantity = available - used;
-    remaining -= used;
-  }
-  if (remaining > 0) {
-    return `Stock parcialmente abatido. Faltam ${remaining} unidades para este pedido.`;
-  }
-  return "Stock abatido automaticamente para este pedido.";
+async function persistState() {
+  const payload = await apiCall("?route=state", {
+    method: "PUT",
+    body: JSON.stringify({ action: statePendingAction.type, data: statePendingAction.payload }),
+  });
+  state = normalizeState(payload.data || state);
+  statePendingAction = null;
+  return payload.message || "";
 }
 
-function handleLogin(event) {
+async function refreshStateFromApi() {
+  const payload = await apiCall("?route=state", {
+    method: "GET",
+  });
+  state = normalizeState(payload.data || createInitialState());
+}
+
+async function handleLogin(event) {
   event.preventDefault();
   const formData = new FormData(loginFormEl);
   const username = String(formData.get("username") || "").trim();
   const password = String(formData.get("password") || "").trim();
 
-  const user = USERS.find((entry) => entry.username === username && entry.password === password);
-  if (!user) {
-    showFlash("Credenciais invalidas. Tente novamente.", "error");
-    return;
+  try {
+    const payload = await apiCall("?route=auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+    const session = payload.session;
+    if (!session) {
+      throw new Error("Sessao invalida recebida do servidor.");
+    }
+    state.session = session;
+    await refreshStateFromApi();
+    state.session = session;
+    syncStatusEl.className = "sync-badge remote";
+    syncStatusEl.textContent = "MySQL Hostinger";
+    renderApp();
+    showFlash(`Sessao iniciada como ${session.name}.`);
+  } catch (error) {
+    showFlash(error.message || "Falha no login.", "error");
   }
-
-  state.session = { username: user.username, role: user.role, name: user.name };
-  saveState();
-  renderApp();
-  showFlash(`Sessao iniciada como ${user.name}.`);
 }
 
-function handleLogout() {
+async function handleLogout() {
+  try {
+    await apiCall("?route=auth/logout", { method: "POST" });
+  } catch (error) {
+    // continue local cleanup even when session endpoint fails
+  }
   state.session = null;
-  saveState();
   renderApp();
 }
 
-function handleNewOrder(event) {
+async function handleNewOrder(event) {
   event.preventDefault();
   if (!roleCanAccess("pedidos")) {
     showFlash("Sem permissao para criar pedidos.", "error");
@@ -775,7 +620,7 @@ function handleNewOrder(event) {
   }
 
   const order = {
-    id: getNextId("order", "PED"),
+    id: `PED-${state.counters.order || 1}`,
     createdAt: new Date().toISOString(),
     createdBy: state.session.username,
     clientName: String(data.get("clientName")).trim(),
@@ -792,15 +637,33 @@ function handleNewOrder(event) {
     status: "em_producao",
   };
 
-  state.orders.push(order);
-  const stockResultMessage = tryConsumeStockForOrder(order);
-  saveState();
-  renderApp();
-  orderFormEl.reset();
-  showFlash(`Pedido ${order.id} enviado para producao. ${stockResultMessage}`);
+  try {
+    statePendingAction = {
+      type: "create_order",
+      payload: {
+        clientName: order.clientName,
+        contact: order.contact,
+        model: order.model,
+        quantity: order.quantity,
+        size: order.size,
+        color: order.color,
+        supplierId: order.supplierId,
+        productionCost: order.productionCost,
+        salePrice: order.salePrice,
+        notes: order.notes,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    orderFormEl.reset();
+    showFlash(message || "Pedido enviado para producao.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao gravar pedido.", "error");
+  }
 }
 
-function handleProductionUpdate(event) {
+async function handleProductionUpdate(event) {
   event.preventDefault();
   const form = event.target.closest(".production-update-form");
   if (!form) {
@@ -821,14 +684,25 @@ function handleProductionUpdate(event) {
     return;
   }
 
-  order.status = newStatus;
-  order.productionNote = note;
-  saveState();
-  renderApp();
-  showFlash(`Pedido ${order.id} atualizado para ${STATUS_MAP[newStatus].label}.`);
+  try {
+    statePendingAction = {
+      type: "update_order_status",
+      payload: {
+        orderId,
+        status: newStatus,
+        note,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    showFlash(message || `Pedido ${order.id} atualizado para ${STATUS_MAP[newStatus].label}.`);
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao atualizar pedido.", "error");
+  }
 }
 
-function handleStockCreate(event) {
+async function handleStockCreate(event) {
   event.preventDefault();
   if (!state.suppliers.length) {
     showFlash("Cadastre pelo menos um fornecedor antes de adicionar stock.", "error");
@@ -845,39 +719,34 @@ function handleStockCreate(event) {
     return;
   }
 
-  const existing = state.stockItems.find(
-    (item) =>
-      item.name.toLowerCase() === String(data.get("name")).trim().toLowerCase() &&
-      item.size === String(data.get("size")) &&
-      item.color === String(data.get("color")) &&
-      item.supplierId === supplierId
-  );
+  const name = String(data.get("name")).trim();
+  const size = String(data.get("size"));
+  const color = String(data.get("color"));
 
-  if (existing) {
-    existing.quantity = Number(existing.quantity) + quantity;
-    existing.reorderLevel = reorderLevel;
-    existing.unitCost = unitCost;
-    showFlash("Stock atualizado para item existente.");
-  } else {
-    state.stockItems.push({
-      id: getNextId("stock", "STK"),
-      name: String(data.get("name")).trim(),
-      size: String(data.get("size")).trim(),
-      color: String(data.get("color")).trim(),
-      supplierId,
-      quantity,
-      unitCost,
-      reorderLevel,
-    });
-    showFlash("Novo item adicionado ao stock.");
+  try {
+    statePendingAction = {
+      type: "create_stock_item",
+      payload: {
+        name,
+        size,
+        color,
+        supplierId,
+        quantity,
+        unitCost,
+        reorderLevel,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    stockFormEl.reset();
+    showFlash(message || "Stock atualizado.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao guardar stock.", "error");
   }
-
-  saveState();
-  renderApp();
-  stockFormEl.reset();
 }
 
-function handleStockMove(event) {
+async function handleStockMove(event) {
   event.preventDefault();
   const form = event.target.closest(".stock-move-form");
   if (!form) {
@@ -898,25 +767,30 @@ function handleStockMove(event) {
     return;
   }
 
-  if (operation === "add") {
-    stockItem.quantity = Number(stockItem.quantity) + amount;
-  } else if (operation === "remove") {
-    if (Number(stockItem.quantity) < amount) {
-      showFlash(`Sem stock suficiente em ${stockItem.name}.`, "error");
-      return;
-    }
-    stockItem.quantity = Number(stockItem.quantity) - amount;
-  } else {
+  if (operation !== "add" && operation !== "remove") {
     showFlash("Operacao de stock invalida.", "error");
     return;
   }
 
-  saveState();
-  renderApp();
-  showFlash("Movimento de stock registado.");
+  try {
+    statePendingAction = {
+      type: "move_stock",
+      payload: {
+        stockId,
+        operation,
+        amount,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    showFlash(message || "Movimento de stock registado.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao mover stock.", "error");
+  }
 }
 
-function handleStockDelete(event) {
+async function handleStockDelete(event) {
   const button = event.target.closest('button[data-action="delete-stock"]');
   if (!button) {
     return;
@@ -926,13 +800,23 @@ function handleStockDelete(event) {
     return;
   }
   const stockId = button.dataset.id;
-  state.stockItems = state.stockItems.filter((item) => item.id !== stockId);
-  saveState();
-  renderApp();
-  showFlash("Item de stock removido.");
+  try {
+    statePendingAction = {
+      type: "delete_stock",
+      payload: {
+        stockId,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    showFlash(message || "Item de stock removido.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao remover stock.", "error");
+  }
 }
 
-function handleSupplierCreate(event) {
+async function handleSupplierCreate(event) {
   event.preventDefault();
   const data = new FormData(supplierFormEl);
   const name = String(data.get("name")).trim();
@@ -942,23 +826,30 @@ function handleSupplierCreate(event) {
     showFlash("Preencha todos os campos do fornecedor.", "error");
     return;
   }
-  state.suppliers.push({
-    id: getNextId("supplier", "SUP"),
-    name,
-    contact,
-    city,
-  });
-  saveState();
-  renderApp();
-  supplierFormEl.reset();
-  showFlash("Fornecedor adicionado com sucesso.");
+  try {
+    statePendingAction = {
+      type: "create_supplier",
+      payload: {
+        name,
+        contact,
+        city,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    supplierFormEl.reset();
+    showFlash(message || "Fornecedor adicionado com sucesso.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao adicionar fornecedor.", "error");
+  }
 }
 
 function addUniqueValue(listName, value) {
   if (!value) {
     return false;
   }
-  const exists = state[listName].some((item) => item.toLowerCase() === value.toLowerCase());
+  const exists = state[listName].some((item) => String(item).toLowerCase() === String(value).toLowerCase());
   if (exists) {
     return false;
   }
@@ -967,7 +858,7 @@ function addUniqueValue(listName, value) {
   return true;
 }
 
-function handleSizeCreate(event) {
+async function handleSizeCreate(event) {
   event.preventDefault();
   const data = new FormData(sizeFormEl);
   const size = String(data.get("sizeLabel") || "").trim();
@@ -975,17 +866,24 @@ function handleSizeCreate(event) {
     showFlash("Tamanho invalido.", "error");
     return;
   }
-  if (!addUniqueValue("sizes", size)) {
-    showFlash("Tamanho ja existe.", "error");
-    return;
+  try {
+    statePendingAction = {
+      type: "create_size",
+      payload: {
+        label: size,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    sizeFormEl.reset();
+    showFlash(message || "Tamanho adicionado.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao guardar tamanho.", "error");
   }
-  saveState();
-  renderApp();
-  sizeFormEl.reset();
-  showFlash("Tamanho adicionado.");
 }
 
-function handleColorCreate(event) {
+async function handleColorCreate(event) {
   event.preventDefault();
   const data = new FormData(colorFormEl);
   const color = String(data.get("colorLabel") || "").trim();
@@ -993,35 +891,52 @@ function handleColorCreate(event) {
     showFlash("Cor invalida.", "error");
     return;
   }
-  if (!addUniqueValue("colors", color)) {
-    showFlash("Cor ja existe.", "error");
-    return;
+  try {
+    statePendingAction = {
+      type: "create_color",
+      payload: {
+        label: color,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    colorFormEl.reset();
+    showFlash(message || "Cor adicionada.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao guardar cor.", "error");
   }
-  saveState();
-  renderApp();
-  colorFormEl.reset();
-  showFlash("Cor adicionada.");
 }
 
-function handleSupplierDelete(event) {
+async function handleSupplierDelete(event) {
   const button = event.target.closest('button[data-action="delete-supplier"]');
   if (!button) {
     return;
   }
   const supplierId = button.dataset.id;
-  const linkedStock = state.stockItems.some((item) => item.supplierId === supplierId);
-  const linkedOrders = state.orders.some((order) => order.supplierId === supplierId);
+  const linkedStock = state.stockItems.some((item) => String(item.supplierId) === String(supplierId));
+  const linkedOrders = state.orders.some((order) => String(order.supplierId) === String(supplierId));
   if (linkedStock || linkedOrders) {
     showFlash("Fornecedor em uso em stock ou pedidos. Nao pode remover.", "error");
     return;
   }
-  state.suppliers = state.suppliers.filter((supplier) => supplier.id !== supplierId);
-  saveState();
-  renderApp();
-  showFlash("Fornecedor removido.");
+  try {
+    statePendingAction = {
+      type: "delete_supplier",
+      payload: {
+        supplierId,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    showFlash(message || "Fornecedor removido.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao remover fornecedor.", "error");
+  }
 }
 
-function handleLossCreate(event) {
+async function handleLossCreate(event) {
   event.preventDefault();
   const data = new FormData(lossFormEl);
   const entryType = String(data.get("entryType"));
@@ -1031,23 +946,32 @@ function handleLossCreate(event) {
     showFlash("Perda/despesa invalida.", "error");
     return;
   }
-  state.lossEntries.push({
-    id: getNextId("loss", "LSE"),
-    entryType,
-    description,
-    amount,
-    createdAt: new Date().toISOString(),
-    createdBy: state.session?.username || "sistema",
-  });
-  saveState();
-  renderApp();
-  lossFormEl.reset();
-  showFlash("Lancamento registado.");
+  try {
+    statePendingAction = {
+      type: "create_loss_entry",
+      payload: {
+        entryType,
+        description,
+        amount,
+      },
+    };
+    const message = await persistState();
+    renderApp();
+    lossFormEl.reset();
+    showFlash(message || "Lancamento registado.");
+  } catch (error) {
+    statePendingAction = null;
+    showFlash(error.message || "Falha ao guardar lancamento.", "error");
+  }
 }
 
 function attachListeners() {
-  loginFormEl.addEventListener("submit", handleLogin);
-  logoutBtnEl.addEventListener("click", handleLogout);
+  loginFormEl.addEventListener("submit", (event) => {
+    handleLogin(event);
+  });
+  logoutBtnEl.addEventListener("click", () => {
+    handleLogout();
+  });
   navEl.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-view]");
     if (!button) {
@@ -1056,27 +980,46 @@ function attachListeners() {
     setActiveView(button.dataset.view);
   });
 
-  orderFormEl.addEventListener("submit", handleNewOrder);
-  productionTableBodyEl.addEventListener("submit", handleProductionUpdate);
+  orderFormEl.addEventListener("submit", (event) => {
+    handleNewOrder(event);
+  });
+  productionTableBodyEl.addEventListener("submit", (event) => {
+    handleProductionUpdate(event);
+  });
 
-  stockFormEl.addEventListener("submit", handleStockCreate);
-  stockTableBodyEl.addEventListener("submit", handleStockMove);
-  stockTableBodyEl.addEventListener("click", handleStockDelete);
+  stockFormEl.addEventListener("submit", (event) => {
+    handleStockCreate(event);
+  });
+  stockTableBodyEl.addEventListener("submit", (event) => {
+    handleStockMove(event);
+  });
+  stockTableBodyEl.addEventListener("click", (event) => {
+    handleStockDelete(event);
+  });
 
-  supplierFormEl.addEventListener("submit", handleSupplierCreate);
-  sizeFormEl.addEventListener("submit", handleSizeCreate);
-  colorFormEl.addEventListener("submit", handleColorCreate);
-  supplierTableBodyEl.addEventListener("click", handleSupplierDelete);
+  supplierFormEl.addEventListener("submit", (event) => {
+    handleSupplierCreate(event);
+  });
+  sizeFormEl.addEventListener("submit", (event) => {
+    handleSizeCreate(event);
+  });
+  colorFormEl.addEventListener("submit", (event) => {
+    handleColorCreate(event);
+  });
+  supplierTableBodyEl.addEventListener("click", (event) => {
+    handleSupplierDelete(event);
+  });
 
-  lossFormEl.addEventListener("submit", handleLossCreate);
+  lossFormEl.addEventListener("submit", (event) => {
+    handleLossCreate(event);
+  });
 }
 
 const viewIds = ["dashboard", "pedidos", "producao", "stock", "fornecedores", "perdas", "financeiro"];
 let activeView = "dashboard";
 let flashTimeoutId = null;
-let syncMode = "local";
-let supabaseClient = null;
 let state = createInitialState();
+let statePendingAction = null;
 
 const loginSectionEl = document.getElementById("loginSection");
 const appSectionEl = document.getElementById("appSection");
@@ -1119,10 +1062,23 @@ const financeCardsEl = document.getElementById("financeCards");
 const financeDetailEl = document.getElementById("financeDetail");
 
 async function initializeApp() {
-  supabaseClient = buildSupabaseClient();
-  state = await loadState();
+  attachListeners();
+  syncStatusEl.className = "sync-badge remote";
+  syncStatusEl.textContent = "MySQL Hostinger";
+
+  try {
+    const authPayload = await apiCall("?route=auth/session", { method: "GET" });
+    const session = authPayload.session || null;
+    if (session) {
+      state.session = session;
+      await refreshStateFromApi();
+      state.session = session;
+    }
+  } catch (error) {
+    showFlash(error.message || "Falha ao inicializar aplicacao.", "error");
+  }
+
   renderApp();
 }
 
-attachListeners();
 initializeApp();

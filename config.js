@@ -1,4 +1,3 @@
 window.APP_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: "",
+  API_BASE_URL: "./api/index.php",
 };
