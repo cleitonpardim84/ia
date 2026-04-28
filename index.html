@@ -12,6 +12,7 @@
         <div>
           <h1>Gestao da Estamparia - Lisboa</h1>
           <p class="muted">Fluxo atendente -> producao com controlo administrativo</p>
+          <p id="syncStatus" class="sync-badge local">Modo local</p>
         </div>
         <div id="sessionInfo" class="hidden session">
           <span id="sessionName"></span>
@@ -288,6 +289,8 @@
       </section>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -1,4 +1,7 @@
 const STORAGE_KEY = "estamparia_lisboa_v1";
+const DEFAULT_STATE_ID = "main";
+const SUPABASE_TABLE = "app_state";
+const SUPABASE_SCHEMA = "public";
 
 const USERS = [
   { username: "admin", password: "admin123", role: "admin", name: "Admin Geral" },
@@ -100,7 +103,7 @@ function normalizeState(rawState) {
   return normalized;
 }
 
-function loadState() {
+function loadLocalState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
@@ -112,8 +115,126 @@ function loadState() {
   }
 }
 
+function saveLocalState(nextState) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+}
+
+function supabaseConfig() {
+  const config = window.APP_CONFIG || {};
+  const url = String(config.SUPABASE_URL || "").trim();
+  const anonKey = String(config.SUPABASE_ANON_KEY || "").trim();
+  if (!url || !anonKey) {
+    return null;
+  }
+  return { url, anonKey };
+}
+
+function hasSupabaseClient() {
+  return Boolean(window.supabase && typeof window.supabase.createClient === "function");
+}
+
+function buildSupabaseClient() {
+  const config = supabaseConfig();
+  if (!config || !hasSupabaseClient()) {
+    return null;
+  }
+  return window.supabase.createClient(config.url, config.anonKey);
+}
+
+async function loadRemoteState() {
+  if (!supabaseClient) {
+    return null;
+  }
+  const { data, error } = await supabaseClient
+    .from(SUPABASE_TABLE)
+    .select("id, payload")
+    .eq("id", DEFAULT_STATE_ID)
+    .maybeSingle();
+  if (error) {
+    throw error;
+  }
+  if (!data || !data.payload) {
+    return null;
+  }
+  return normalizeState(data.payload);
+}
+
+async function saveRemoteState(nextState) {
+  if (!supabaseClient) {
+    return;
+  }
+  const payload = normalizeState(nextState);
+  const { error } = await supabaseClient
+    .from(SUPABASE_TABLE)
+    .upsert(
+      {
+        id: DEFAULT_STATE_ID,
+        payload,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" }
+    );
+  if (error) {
+    throw error;
+  }
+}
+
+function updateSyncBadge(mode, message) {
+  if (!syncStatusEl) {
+    return;
+  }
+  syncStatusEl.className = `sync-badge ${mode}`;
+  syncStatusEl.textContent = message;
+}
+
+async function loadState() {
+  const localState = loadLocalState();
+  if (!supabaseClient) {
+    syncMode = "local";
+    updateSyncBadge("local", "Modo local");
+    return localState;
+  }
+
+  try {
+    const remoteState = await loadRemoteState();
+    if (remoteState) {
+      syncMode = "remote";
+      updateSyncBadge("remote", "Supabase ligado");
+      saveLocalState(remoteState);
+      return remoteState;
+    }
+
+    await saveRemoteState(localState);
+    syncMode = "remote";
+    updateSyncBadge("remote", "Supabase ligado");
+    return localState;
+  } catch (error) {
+    console.error("Falha ao carregar do Supabase:", error);
+    syncMode = "fallback";
+    updateSyncBadge("error", "Erro Supabase - fallback local");
+    return localState;
+  }
+}
+
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const snapshot = normalizeState(state);
+  saveLocalState(snapshot);
+  if (!supabaseClient) {
+    syncMode = "local";
+    updateSyncBadge("local", "Modo local");
+    return;
+  }
+  saveRemoteState(snapshot)
+    .then(() => {
+      syncMode = "remote";
+      updateSyncBadge("remote", "Supabase ligado");
+    })
+    .catch((error) => {
+      console.error("Falha ao gravar no Supabase:", error);
+      syncMode = "fallback";
+      updateSyncBadge("error", "Erro Supabase - fallback local");
+      showFlash("Gravado localmente. Falha na sincronizacao Supabase.", "error");
+    });
 }
 
 function getNextId(counterKey, prefix) {
@@ -953,7 +1074,9 @@ function attachListeners() {
 const viewIds = ["dashboard", "pedidos", "producao", "stock", "fornecedores", "perdas", "financeiro"];
 let activeView = "dashboard";
 let flashTimeoutId = null;
-let state = loadState();
+let syncMode = "local";
+let supabaseClient = null;
+let state = createInitialState();
 
 const loginSectionEl = document.getElementById("loginSection");
 const appSectionEl = document.getElementById("appSection");
@@ -964,6 +1087,7 @@ const sessionNameEl = document.getElementById("sessionName");
 const sessionRoleEl = document.getElementById("sessionRole");
 const navEl = document.getElementById("mainNav");
 const flashMessageEl = document.getElementById("flashMessage");
+const syncStatusEl = document.getElementById("syncStatus");
 
 const dashboardViewEl = document.getElementById("view-dashboard");
 
@@ -994,5 +1118,11 @@ const lossTableBodyEl = document.getElementById("lossTableBody");
 const financeCardsEl = document.getElementById("financeCards");
 const financeDetailEl = document.getElementById("financeDetail");
 
+async function initializeApp() {
+  supabaseClient = buildSupabaseClient();
+  state = await loadState();
+  renderApp();
+}
+
 attachListeners();
-renderApp();
+initializeApp();
