@@ -1,0 +1,312 @@
+:root {
+  color-scheme: light;
+  --bg: #f5f7fb;
+  --panel: #ffffff;
+  --line: #d8deea;
+  --text: #1c2431;
+  --muted: #627089;
+  --primary: #2f6efb;
+  --danger: #d7263d;
+  --ok: #0e8a5b;
+  --warn: #bf7a00;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 12px 0;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.04);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.session {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.badge {
+  font-size: 12px;
+  background: #eaf0ff;
+  color: #1f4cc6;
+  border: 1px solid #cddcfe;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.btn {
+  border: none;
+  background: var(--primary);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:hover {
+  filter: brightness(1.05);
+}
+
+.btn.ghost {
+  background: white;
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.btn.danger {
+  background: var(--danger);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.grid label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+input,
+select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+}
+
+.order-form button,
+#stockForm button,
+#lossForm button {
+  align-self: end;
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 14px;
+}
+
+.nav button {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 9px 11px;
+  cursor: pointer;
+}
+
+.nav button.active {
+  border-color: #b8cafb;
+  background: #edf3ff;
+  color: #1f4cc6;
+  font-weight: 700;
+}
+
+.flash {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.flash.info {
+  background: #edf3ff;
+  border-color: #ceddff;
+  color: #264ba0;
+}
+
+.flash.error {
+  background: #ffeff2;
+  border-color: #ffd1d8;
+  color: #8f1225;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  padding: 9px 8px;
+  vertical-align: top;
+  font-size: 14px;
+}
+
+th {
+  color: #3f4f6d;
+  background: #f8faff;
+}
+
+.status-pill {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 12px;
+  border: 1px solid;
+  font-weight: 700;
+}
+
+.status-em_producao {
+  color: #0b4f9a;
+  border-color: #9bc5ff;
+  background: #ebf4ff;
+}
+
+.status-aguardando_pagamento_50 {
+  color: #7c4c00;
+  border-color: #f5d18f;
+  background: #fff5e5;
+}
+
+.status-pagamento_100 {
+  color: #0c6b3f;
+  border-color: #9ed6ba;
+  background: #e9f9f0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fefefe;
+}
+
+.stat-card p {
+  margin: 0;
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.alert {
+  border-radius: 10px;
+  border: 1px solid;
+  padding: 8px 10px;
+  margin-top: 10px;
+}
+
+.alert.warn {
+  background: #fff4e4;
+  border-color: #f3c687;
+  color: var(--warn);
+}
+
+.alert.ok {
+  background: #ecf8f3;
+  border-color: #b8e2cd;
+  color: var(--ok);
+}
+
+.triple {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.subform {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: #fafbfd;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.danger-text {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.demo-box {
+  margin-top: 12px;
+}
+
+.demo-box ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.inline-control {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.inline-control input,
+.inline-control select {
+  min-width: 110px;
+}

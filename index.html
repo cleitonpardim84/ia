@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestao - Estamparia Lisboa</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <header class="topbar">
+        <div>
+          <h1>Gestao da Estamparia - Lisboa</h1>
+          <p class="muted">Fluxo atendente -> producao com controlo administrativo</p>
+        </div>
+        <div id="sessionInfo" class="hidden session">
+          <span id="sessionName"></span>
+          <span id="sessionRole" class="badge"></span>
+          <button id="logoutBtn" class="btn ghost" type="button">Sair</button>
+        </div>
+      </header>
+
+      <section id="loginSection" class="panel login-panel">
+        <h2>Entrar no sistema</h2>
+        <p class="muted">Use os logins de demo para Admin, Atendente ou Producao.</p>
+        <form id="loginForm" class="grid">
+          <label>
+            Utilizador
+            <input id="usernameInput" name="username" required />
+          </label>
+          <label>
+            Palavra-passe
+            <input id="passwordInput" name="password" type="password" required />
+          </label>
+          <button class="btn" type="submit">Entrar</button>
+        </form>
+        <details class="demo-box">
+          <summary>Credenciais de exemplo</summary>
+          <ul>
+            <li>Admin: <code>admin</code> / <code>admin123</code></li>
+            <li>Atendente: <code>atendente</code> / <code>atendente123</code></li>
+            <li>Producao: <code>producao</code> / <code>producao123</code></li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="appSection" class="hidden">
+        <nav id="mainNav" class="nav"></nav>
+        <p id="flashMessage" class="flash hidden"></p>
+
+        <section id="view-dashboard" class="view panel"></section>
+
+        <section id="view-pedidos" class="view panel hidden">
+          <h2>Novo pedido para producao</h2>
+          <form id="orderForm" class="grid order-form">
+            <label>
+              Cliente
+              <input name="clientName" required />
+            </label>
+            <label>
+              Contacto
+              <input name="contact" required />
+            </label>
+            <label>
+              Modelo
+              <input name="model" required />
+            </label>
+            <label>
+              Quantidade
+              <input name="quantity" type="number" min="1" step="1" required />
+            </label>
+            <label>
+              Tamanho
+              <select name="size" id="orderSize" required></select>
+            </label>
+            <label>
+              Cor
+              <select name="color" id="orderColor" required></select>
+            </label>
+            <label>
+              Fornecedor
+              <select name="supplierId" id="orderSupplier" required></select>
+            </label>
+            <label>
+              Custo unitario (EUR)
+              <input name="productionCost" type="number" min="0" step="0.01" required />
+            </label>
+            <label>
+              Preco unitario (EUR)
+              <input name="salePrice" type="number" min="0" step="0.01" required />
+            </label>
+            <label>
+              Notas para producao
+              <input name="notes" />
+            </label>
+            <button class="btn" type="submit">Enviar para producao</button>
+          </form>
+
+          <h3>Pedidos registados</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Cliente</th>
+                  <th>Modelo</th>
+                  <th>Tam/Cor</th>
+                  <th>Fornecedor</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="view-producao" class="view panel hidden">
+          <h2>Menu de producao</h2>
+          <p class="muted">Atualize status de cada pedido e registe notas da oficina.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Cliente</th>
+                  <th>Especificacao</th>
+                  <th>Status</th>
+                  <th>Nota</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody id="productionTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="view-stock" class="view panel hidden">
+          <h2>Gerenciamento de stock</h2>
+          <form id="stockForm" class="grid">
+            <label>
+              Item
+              <input name="name" required />
+            </label>
+            <label>
+              Tamanho
+              <select name="size" id="stockSize" required></select>
+            </label>
+            <label>
+              Cor
+              <select name="color" id="stockColor" required></select>
+            </label>
+            <label>
+              Fornecedor
+              <select name="supplierId" id="stockSupplier" required></select>
+            </label>
+            <label>
+              Quantidade inicial
+              <input name="quantity" type="number" min="0" step="1" required />
+            </label>
+            <label>
+              Custo unitario (EUR)
+              <input name="unitCost" type="number" min="0" step="0.01" required />
+            </label>
+            <label>
+              Nivel minimo
+              <input name="reorderLevel" type="number" min="0" step="1" required />
+            </label>
+            <button class="btn" type="submit">Adicionar ao stock</button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Variante</th>
+                  <th>Fornecedor</th>
+                  <th>Qtd</th>
+                  <th>Custo unit.</th>
+                  <th>Movimento</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody id="stockTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="view-fornecedores" class="view panel hidden">
+          <h2>Fornecedores, tamanhos e cores</h2>
+          <div class="grid triple">
+            <form id="supplierForm" class="subform">
+              <h3>Novo fornecedor</h3>
+              <label>
+                Nome
+                <input name="name" required />
+              </label>
+              <label>
+                Contacto
+                <input name="contact" required />
+              </label>
+              <label>
+                Cidade
+                <input name="city" value="Lisboa" required />
+              </label>
+              <button class="btn" type="submit">Guardar fornecedor</button>
+            </form>
+
+            <form id="sizeForm" class="subform">
+              <h3>Novo tamanho</h3>
+              <label>
+                Tamanho
+                <input name="sizeLabel" required />
+              </label>
+              <button class="btn" type="submit">Adicionar tamanho</button>
+              <div id="sizeList" class="chip-list"></div>
+            </form>
+
+            <form id="colorForm" class="subform">
+              <h3>Nova cor</h3>
+              <label>
+                Cor
+                <input name="colorLabel" required />
+              </label>
+              <button class="btn" type="submit">Adicionar cor</button>
+              <div id="colorList" class="chip-list"></div>
+            </form>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fornecedor</th>
+                  <th>Contacto</th>
+                  <th>Cidade</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody id="supplierTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="view-perdas" class="view panel hidden">
+          <h2>Menu de perdas e despesas</h2>
+          <form id="lossForm" class="grid">
+            <label>
+              Tipo
+              <select name="entryType" required>
+                <option value="loss">Perda</option>
+                <option value="expense">Despesa</option>
+              </select>
+            </label>
+            <label>
+              Descricao
+              <input name="description" required />
+            </label>
+            <label>
+              Valor (EUR)
+              <input name="amount" type="number" min="0" step="0.01" required />
+            </label>
+            <button class="btn" type="submit">Registar</button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Tipo</th>
+                  <th>Descricao</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody id="lossTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="view-financeiro" class="view panel hidden">
+          <h2>Painel de lucros e despesas</h2>
+          <div id="financeCards" class="stats-grid"></div>
+          <h3>Detalhe de custos e receitas</h3>
+          <div id="financeDetail"></div>
+        </section>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
