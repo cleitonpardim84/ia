@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+token.json
+.gmail_auto_draft_state.json
