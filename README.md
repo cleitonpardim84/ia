@@ -1,3 +1,3 @@
 # ia
 
-Documentacao auxiliar: pasta `docs/` (importacao WooCommerce / precos por cor).
+Documentacao auxiliar na pasta **`docs/`**. Ficheiros para **copiar / descarregar para o teu disco** (CSV de exemplo, snippets): ver **`docs/exemplos/README.md`**.
