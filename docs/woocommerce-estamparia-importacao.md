@@ -27,7 +27,7 @@ Nomes de coluna usuais do CSV WooCommerce (em ingles, como o modelo oficial):
 |------------|--------------------------------|
 | `Type` | `simple`, `variable`, ou `variation` |
 | `SKU` | Codigo unico (ex.: `VAL-BIKE-BRANCO-M`) |
-| `Name` | Nome visivel do produto |
+| `Name` | Titulo visivel; ver **Titulo do produto (convencao estamparia.pt)** |
 | `Published` | `1` publicar, `0` rascunho |
 | `Short description` | Descricao curta (listagens, SEO) |
 | `Description` | Descricao longa (ficha) |
@@ -42,6 +42,38 @@ Nomes de coluna usuais do CSV WooCommerce (em ingles, como o modelo oficial):
 | `Attribute 1 global` | `1` se for atributo global criado em Produtos > Atributos (recomendado para filtrar por cor) |
 
 Gramagem (ex.: `220 g/m2`): pode ser **atributo do produto** visivel na ficha (igual para todas as cores) ou **metadado personalizado**; o CSV nativo suporta atributos numerados (`Attribute 2 name` = `Gramagem`, valor = `220 g/m2`).
+
+---
+
+## Titulo do produto (convencao estamparia.pt)
+
+Formato pedido para o campo **`Name`** (titulo do produto na loja):
+
+```text
+(Nome da categoria Menu) (personalizado DTF) (Nome do Produto)
+```
+
+Onde:
+
+- **Nome da categoria Menu** -- o texto **como aparece no menu** da loja (ex.: `T-SHIRTS`, `SWEATSHIRTS`), que pode diferir ligeiramente do nome da categoria WooCommerce (`product_cat`). Usa o mesmo texto para consistencia com a navegacao.
+- **`(personalizado DTF)`** -- segmento **fixo** para deixar claro o servico de estampagem DTF.
+- **Nome do Produto** -- nome comercial do modelo (ex.: fornecedor + referencia), ex.: `Camiseta Basic BIKE`.
+
+**Exemplo (pai variavel):**
+
+```text
+(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE)
+```
+
+**Variacoes (`Type` = `variation`):** mantem o mesmo prefixo e acrescenta a cor (ou tamanho) no ultimo segmento, para o cliente distinguir na lista de encomendas / carrinho:
+
+```text
+(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE - Branco)
+```
+
+**CSV:** se o titulo tiver **virgulas**, envolve a celula `Name` em **aspas duplas** no ficheiro CSV.
+
+**Automatizar:** em script de importacao, montar a string a partir de: (1) mapa categoria WooCommerce -> nome de menu, (2) literal fixo, (3) nome vindo do fornecedor.
 
 ---
 
@@ -170,7 +202,7 @@ Instalacao tipica: plugin **Code Snippets** (executar em todo o sitio) ou copiar
 |--------|---------------------|
 | Tipo de produto | Categorias e/ou etiquetas; atributo "Tipo" se precisares de taxonomia propria |
 | Categoria | Taxonomia `product_cat` (coluna `Categories` no CSV) |
-| Nome | `Name` |
+| Nome | `Name` -- ver **Titulo do produto (convencao estamparia.pt)** |
 | Descricao breve | `Short description` |
 | Gramagem | Atributo de produto ou campo personalizado |
 | Cores | Atributo global `Cor` + variacoes `variation` com `Attribute 1 name` / valor |
@@ -193,13 +225,14 @@ Conteudo (mesmo do ficheiro; separador virgula, **UTF-8**):
 
 ```csv
 Type,SKU,Name,Published,Is featured?,Visibility in catalog,Short description,Description,Tax status,In stock?,Stock,Regular price,Categories,Images,Parent,Attribute 1 name,Attribute 1 value(s),Attribute 1 visible,Attribute 1 global,Attribute 2 name,Attribute 2 value(s),Attribute 2 visible,Attribute 2 global
-variable,VAL-BIKE,Camiseta Basic BIKE,1,0,visible,"T-shirt unisex 150 g/m2, malha jersey.","Modelo exemplo para importacao (precos ilustrativos, sem IVA).",taxable,1,,,T-shirts > Unisex,"https://www.exemplo.pt/imagens/bike-branco.jpg,https://www.exemplo.pt/imagens/bike-verso.jpg",,Cor,"Branco | Preto",1,1,Gramagem,"150 g/m2",1,0
-variation,VAL-BIKE-BRANCO,Camiseta Basic BIKE - Branco,1,0,visible,,,taxable,1,10,4.20,T-shirts > Unisex,https://www.exemplo.pt/imagens/bike-branco.jpg,VAL-BIKE,Cor,Branco,1,1,,,,,
-variation,VAL-BIKE-PRETO,Camiseta Basic BIKE - Preto,1,0,visible,,,taxable,1,5,5.80,T-shirts > Unisex,https://www.exemplo.pt/imagens/bike-preto.jpg,VAL-BIKE,Cor,Preto,1,1,,,,,
+variable,VAL-BIKE,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE)",1,0,visible,"T-shirt unisex 150 g/m2, malha jersey.","Modelo exemplo para importacao (precos ilustrativos, sem IVA).",taxable,1,,,T-shirts > Unisex,"https://www.exemplo.pt/imagens/bike-branco.jpg,https://www.exemplo.pt/imagens/bike-verso.jpg",,Cor,"Branco | Preto",1,1,Gramagem,"150 g/m2",1,0
+variation,VAL-BIKE-BRANCO,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE - Branco)",1,0,visible,,,taxable,1,10,4.20,T-shirts > Unisex,https://www.exemplo.pt/imagens/bike-branco.jpg,VAL-BIKE,Cor,Branco,1,1,,,,,
+variation,VAL-BIKE-PRETO,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE - Preto)",1,0,visible,,,taxable,1,5,5.80,T-shirts > Unisex,https://www.exemplo.pt/imagens/bike-preto.jpg,VAL-BIKE,Cor,Preto,1,1,,,,,
 ```
 
 Notas:
 
+- **`Name`**: segue a convencao `(Categoria menu) (personalizado DTF) (Nome do produto)`; ver secao **Titulo do produto**.
 - **`Parent`**: no **pai** `variable`, a coluna `Parent` fica **vazia** (`...,,Cor,...` apos `Images`) para nao deslocar `Attribute 1 name`. Nas linhas `variation`, o valor e o **SKU do pai** (`VAL-BIKE`).
 - **`Attribute 1 value(s)`** no pai: lista de opcoes separadas por **`|`** (`Branco | Preto`).
 - **`Regular price`**: no exemplo, **5.80** (Preto) > **4.20** (Branco); na vitrine o WooCommerce mostra em geral **"desde 4.20"** (minimo), salvo personalizacao (ver secao acima).
