@@ -37,6 +37,8 @@ O site publico usa **WordPress + WooCommerce**. O mapeamento de campos na loja, 
 
 `docs/woocommerce-estamparia-importacao.md`
 
+Margem fixa (+50%) sobre preco B2B do fornecedor e coluna **`Regular price`** (produto simples): `docs/importacao-precos-margem-50-fornecedor.md`.
+
 ## Nota legal e operacional
 
 Precos e condicoes valem os acordados com o distribuidor; confirmar na ficha B2B ou listagem autenticada do fornecedor. Esta nota e apenas regra de agregacao de dados para o teu catalogo.

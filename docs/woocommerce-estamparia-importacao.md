@@ -8,6 +8,8 @@ As **cores** na ficha podem usar **Advanced Product Fields** (Extended / Studio 
 
 A regra de negocio **preco pela cor mais cara** vs **preco por variacao** esta resumida em `docs/precos-importacao-por-cor.md`.
 
+Precos com **margem sobre o fornecedor** (ex.: +50% para `Regular price` em simples): `docs/importacao-precos-margem-50-fornecedor.md`.
+
 ---
 
 ## Tipos de produto
