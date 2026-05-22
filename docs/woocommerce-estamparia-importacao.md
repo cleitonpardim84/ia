@@ -60,8 +60,8 @@ Nomes de coluna usuais do CSV WooCommerce (em ingles, como o modelo oficial):
 | `SKU` | Codigo unico (ex.: `VAL-BIKE-BRANCO-M`) |
 | `Name` | Titulo visivel; ver **Titulo do produto (convencao estamparia.pt)** |
 | `Published` | `1` publicar, `0` rascunho |
-| `Short description` | Descricao curta (listagens, SEO) |
-| `Description` | Descricao longa (ficha) |
+| `Short description` | Texto da ficha em **Portugues de Portugal** (`pt-PT`): reunir **toda a informacao visivel** no site do fornecedor **ate ao 2. paragrafo** (separar paragrafos com linha em branco). Ver **Texto do produto (sem Description no CSV)**. |
+| `Description` | **Nao usar neste fluxo de importacao** (descricao longa no CSV). Opcional: preencher depois no admin WordPress. |
 | `Regular price` | Preco **sem IVA** se a loja estiver configurada assim; na vitrine publica aparece frequentemente "+ IVA" no texto -- alinhar com **Impostos** em WooCommerce |
 | `Weight` | Peso para **Envio** (em **kg**); ver **Gramagem e campo Envio** |
 | `Sale price` | Opcional, promocoes |
@@ -75,6 +75,17 @@ Nomes de coluna usuais do CSV WooCommerce (em ingles, como o modelo oficial):
 
 ---
 
+## Texto do produto (sem `Description` no CSV; `pt-PT`; ate ao 2. paragrafo)
+
+- **Coluna usada:** so **`Short description`** no ficheiro CSV. **Nao** incluir coluna **`Description`** (descricao longa WooCommerce) neste fluxo, para evitar duplicar conteudo longo na importacao.
+- **Idioma:** todo o texto importado nesta coluna deve estar em **Portugues de Portugal** (`pt-PT`), nao es-ES nem pt-BR, salvo excepcoes editoriais.
+- **Conteudo:** agrega o que estiver **visivel ao publico** na ficha do fornecedor (titulos de seccao podem ser convertidos em frases), **traduzido / adaptado** para `pt-PT`.
+- **Limite:** copiar ou sintetizar **apenas ate ao segundo paragrafo** (primeiro bloco de texto, linha em branco, segundo bloco, **parar**). Paragrafos seguintes do fornecedor **nao** entram no CSV; podes cola-los depois na **Descricao longa** no admin se fizer sentido.
+
+Na base de dados, a descricao longa (`post_content`) fica **vazia** ou por preencher no ecra do produto.
+
+---
+
 ## Gramagem e campo Envio (peso em kg)
 
 Na loja, com **Unidade de peso** = **kg** (WooCommerce > Definicoes > Produtos > Unidades de medida), o campo **Peso** em **Dados do produto > Envio** grava **quilogramas**.
@@ -84,7 +95,7 @@ Se escreveres **280** nesse campo, o sistema interpreta **280 kg**, nao 280 gram
 - No **CSV** usa **ponto** como separador decimal: **0.28** (280 g = 0,28 kg) ou **0.280** se quiseres tres casas decimais no numero (no ecra em PT pode aparecer como **0,280**).
 - Regra geral: `peso_em_kg = gramas / 1000` (ex.: 280 g -> **0.28**).
 
-**Manter na descricao do produto:** o mesmo dado deve continuar **legivel para o cliente** em texto, nas colunas **`Short description`** e/ou **`Description`** (ex.: `Malha 150 g/m2`, `Gramagem: 280 g/m2`). O campo **Peso** serve sobretudo para **envio / portes** e calculos internos; a **ficha tecnica e SEO** ficam na descricao (e, se quiseres, no atributo **Gramagem** visivel na ficha).
+**Manter gramagem legivel:** o valor em gramas / g/m2 deve aparecer no texto de **`Short description`** (dentro dos dois paragrafos permitidos) e/ou no atributo **Gramagem**. O campo **Peso** (`Weight` em kg) serve para **envio / portes**; ver secao acima.
 
 Opcional: manter tambem o atributo de produto **Gramagem** (`Attribute N name` = `Gramagem`, valor = `150 g/m2`) para filtros ou tabelas no tema.
 
@@ -249,8 +260,8 @@ Instalacao tipica: plugin **Code Snippets** (executar em todo o sitio) ou copiar
 | Tipo de produto | Categorias e/ou etiquetas; atributo "Tipo" se precisares de taxonomia propria |
 | Categoria | Taxonomia `product_cat` (coluna `Categories` no CSV) |
 | Nome | `Name` -- ver **Titulo do produto (convencao estamparia.pt)** |
-| Descricao breve | `Short description` |
-| Gramagem | **Peso** (`Weight` / `_weight`) em **kg** (ex.: 280 g -> `0.28`) + texto na **descricao** (`Short description` / `Description`); opcional atributo `Gramagem` na ficha |
+| Descricao (texto visivel, pt-PT) | So **`Short description`**: informacao visivel no fornecedor, ate **2. paragrafo**; **sem** coluna `Description` no CSV |
+| Gramagem | **Peso** (`Weight` / `_weight`) em **kg** (ex.: 280 g -> `0.28`) + texto em `Short description` / atributo `Gramagem` |
 | Cores | **APF (swatches):** grupo global por categoria / etiqueta ou import JSON por produto ([doc CSV APF](https://www.studiowombat.com/knowledge-base/does-advanced-product-fields-work-with-csv-bulk-import/)); **OU** Woo nativo: atributo `Cor` + `variation` -- ver **Advanced Product Fields (Extended) e cor** |
 | Fotos por variacao | Imagem da variacao + galeria do pai |
 | Marca VALENTO | Taxonomia `brand`, termo `valento`; ver secao **Marca VALENTO** |
@@ -258,6 +269,8 @@ Instalacao tipica: plugin **Code Snippets** (executar em todo o sitio) ou copiar
 ---
 
 ## Exemplo CSV minimo (pai `variable` + 2 variacoes por cor)
+
+**Ficheiro CSV alterado (sem `Description`):** `docs/exemplos/woocommerce-variable-bike-exemplo.csv` -- coluna **`Description` removida**; texto publico em **`Short description`**, em **Portugues de Portugal**, com **dois paragrafos** (exemplo ilustrativo).
 
 **Advanced Product Fields:** se as **cores** estiverem **apenas** no APF (swatches), este exemplo com atributo **Cor** e variacoes pode **nao** ser o teu fluxo; associa antes um **grupo global** por categoria ou importa JSON por produto. O CSV abaixo serve para **variacoes nativas** WooCommerce.
 
@@ -272,16 +285,23 @@ Ficheiro pronto a editar no repositorio:
 Conteudo (mesmo do ficheiro; separador virgula, **UTF-8**):
 
 ```csv
-Type,SKU,Name,Published,Is featured?,Visibility in catalog,Short description,Description,Tax status,In stock?,Stock,Regular price,Weight,Categories,Images,Parent,Attribute 1 name,Attribute 1 value(s),Attribute 1 visible,Attribute 1 global,Attribute 2 name,Attribute 2 value(s),Attribute 2 visible,Attribute 2 global
-variable,VAL-BIKE,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE)",1,0,visible,"T-shirt unisex 150 g/m2, malha jersey.","Modelo exemplo para importacao (precos ilustrativos, sem IVA). Gramagem da malha: 150 g/m2.",taxable,1,,,0.15,T-shirts > Unisex,"https://www.exemplo.pt/imagens/bike-branco.jpg,https://www.exemplo.pt/imagens/bike-verso.jpg",,Cor,"Branco | Preto",1,1,Gramagem,"150 g/m2",1,0
-variation,VAL-BIKE-BRANCO,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE - Branco)",1,0,visible,"Gramagem da malha: 150 g/m2.",,taxable,1,10,4.20,0.15,T-shirts > Unisex,https://www.exemplo.pt/imagens/bike-branco.jpg,VAL-BIKE,Cor,Branco,1,1,,,,,
-variation,VAL-BIKE-PRETO,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE - Preto)",1,0,visible,"Gramagem da malha: 150 g/m2.",,taxable,1,5,5.80,0.15,T-shirts > Unisex,https://www.exemplo.pt/imagens/bike-preto.jpg,VAL-BIKE,Cor,Preto,1,1,,,,,
+Type,SKU,Name,Published,Is featured?,Visibility in catalog,Short description,Tax status,In stock?,Stock,Regular price,Weight,Categories,Images,Parent,Attribute 1 name,Attribute 1 value(s),Attribute 1 visible,Attribute 1 global,Attribute 2 name,Attribute 2 value(s),Attribute 2 visible,Attribute 2 global
+variable,VAL-BIKE,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE)",1,0,visible,"Primeiro paragrafo em Portugues de Portugal com a informacao visivel no site do fornecedor.
+
+Segundo paragrafo com detalhes tecnicos (ex.: gramagem ou composicao). Importar so ate aqui: nao usar coluna Description no CSV.",taxable,1,,,0.15,T-shirts > Unisex,"https://www.exemplo.pt/imagens/bike-branco.jpg,https://www.exemplo.pt/imagens/bike-verso.jpg",,Cor,"Branco | Preto",1,1,Gramagem,"150 g/m2",1,0
+variation,VAL-BIKE-BRANCO,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE - Branco)",1,0,visible,"Primeiro paragrafo em Portugues de Portugal.
+
+Segundo paragrafo com nota sobre a cor desta variacao.",taxable,1,10,4.20,0.15,T-shirts > Unisex,https://www.exemplo.pt/imagens/bike-branco.jpg,VAL-BIKE,Cor,Branco,1,1,,,,,
+variation,VAL-BIKE-PRETO,"(T-SHIRTS) (personalizado DTF) (Camiseta Basic BIKE - Preto)",1,0,visible,"Primeiro paragrafo em Portugues de Portugal.
+
+Segundo paragrafo com nota sobre a cor desta variacao.",taxable,1,5,5.80,0.15,T-shirts > Unisex,https://www.exemplo.pt/imagens/bike-preto.jpg,VAL-BIKE,Cor,Preto,1,1,,,,,
 ```
 
 Notas:
 
 - **`Name`**: segue a convencao `(Categoria menu) (personalizado DTF) (Nome do produto)`; ver secao **Titulo do produto**.
-- **`Weight`**: no exemplo, **0.15** = 150 g em kg (unidade da loja em kg); exemplo 280 g -> **0.28** no CSV (ponto decimal); no ecra PT pode ver-se **0,28** ou **0,280**. Manter sempre a gramagem **em texto** em `Short description` / `Description`.
+- **`Weight`**: no exemplo, **0.15** = 150 g em kg (unidade da loja em kg); exemplo 280 g -> **0.28** no CSV (ponto decimal); no ecra PT pode ver-se **0,28** ou **0,280**. Manter a gramagem **em texto** dentro dos dois paragrafos de `Short description` ou no atributo **Gramagem**.
+- **`Short description`**: **sem** coluna `Description`; texto em **pt-PT**, **dois paragrafos** no maximo por esta regra de importacao.
 - **`Parent`**: no **pai** `variable`, a coluna `Parent` fica **vazia** (`...,,Cor,...` apos `Images`) para nao deslocar `Attribute 1 name`. Nas linhas `variation`, o valor e o **SKU do pai** (`VAL-BIKE`).
 - **`Attribute 1 value(s)`** no pai: lista de opcoes separadas por **`|`** (`Branco | Preto`).
 - **`Regular price`**: no exemplo, **5.80** (Preto) > **4.20** (Branco); na vitrine o WooCommerce mostra em geral **"desde 4.20"** (minimo), salvo personalizacao (ver secao acima).

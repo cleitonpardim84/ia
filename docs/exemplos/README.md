@@ -19,7 +19,7 @@ https://raw.githubusercontent.com/cleitonpardim84/ia/cursor/woocommerce-estampar
 1. No explorador de ficheiros do sistema operativo, abre a pasta do projeto **`ia`**.
 2. Entra em **`docs`** > **`exemplos`**.
 3. Copia para a pasta onde queres trabalhar (ex.: `Descargas`, pasta da importacao WooCommerce):
-   - `woocommerce-variable-bike-exemplo.csv`
+   - `woocommerce-variable-bike-exemplo.csv` (modelo **sem** coluna `Description`; texto em `Short description`, ver guia em `docs/woocommerce-estamparia-importacao.md`)
    - `snippets/valento-brand-importacao.php` (se precisares do snippet)
 
 Os guias em Markdown ficam em **`docs/`** (um nivel acima): `woocommerce-estamparia-importacao.md`, etc.
