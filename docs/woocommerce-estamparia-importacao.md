@@ -4,6 +4,8 @@
 
 O sitio **estamparia.pt** corre sobre **WordPress com WooCommerce** (presenca de `wp-content`, scripts e marcas tipicas de WooCommerce no HTML publico). Os campos abaixo seguem a convencao do proprio WooCommerce, da REST API `wc/v3` e do **importador CSV** nativo (WooCommerce > Produtos > Importar).
 
+As **cores** na ficha podem usar **Advanced Product Fields** (Extended / Studio Wombat) em **paralelo ou em substituicao** das variacoes nativas; ver **Advanced Product Fields (Extended) e cor**.
+
 A regra de negocio **preco pela cor mais cara** vs **preco por variacao** esta resumida em `docs/precos-importacao-por-cor.md`.
 
 ---
@@ -15,7 +17,34 @@ A regra de negocio **preco pela cor mais cara** vs **preco por variacao** esta r
 | Uma unica cor ou tamanho, um preco | `simple` | Um registo `product`, metas de preco no proprio produto |
 | Mesmo modelo, **varias cores** (e/ou tamanhos), **precos diferentes** | `variable` + filhos `variation` | Produto pai `variable`; cada cor (e tamanho) e uma linha `variation` ligada pelo SKU pai ou coluna Parent |
 
-Recomendacao para textil tipo Valento: **produto variavel** com **uma variacao por combinacao** cor (e tamanho, se aplicavel), cada uma com **SKU unico** e **Regular price** proprio.
+Recomendacao para textil tipo Valento: **produto variavel** com **uma variacao por combinacao** cor (e tamanho, se aplicavel), cada uma com **SKU unico** e **Regular price** proprio -- **quando a cor for gerida so pelo WooCommerce nativo**. Se a cor estiver em **Advanced Product Fields**, evita duplicar a mesma escolha em variacoes nativas (ou separa **tamanho** nativo de **cor** APF); ver a secao seguinte.
+
+---
+
+## Advanced Product Fields (Extended) e cor
+
+Na **estamparia.pt** estas a usar **Advanced Product Fields** (addons de produto para WooCommerce da **Studio Wombat**; **swatches** de cor, imagem e campos por variacao costumam estar na versao **Pro** ou **Extended**). Estes campos sao **opcoes extra** na pagina do produto (e no carrinho / encomenda), **distintos** das **variacoes** nativas `variable` / `variation`, embora possam **combinar-se** (ex.: tamanho em variacao WooCommerce, cor em APF).
+
+### Importacao em massa e CSV
+
+Segundo a [base de conhecimento Studio Wombat](https://www.studiowombat.com/knowledge-base/does-advanced-product-fields-work-with-csv-bulk-import/), **nao ha** ligacao oficial entre o **importador CSV de produtos** do WooCommerce e os valores dos campos APF. Nao contes com colunas extra no CSV para definir swatches de cor.
+
+Abordagens recomendadas:
+
+| Abordagem | Descricao |
+|-----------|-----------|
+| **Grupo global APF** | Em **WooCommerce > Product Fields** (rotulo pode variar consoante a versao): cria o grupo com **swatches de cor** e **associa** a produtos por **categoria**, **etiqueta**, tipo de produto ou IDs. Produtos **novos** importados com a categoria certa passam a ter o formulario de cor **sem** editar cada ficha manualmente. |
+| **Import JSON por produto** | No ecra de edicao do produto, usa **Import** com JSON exportado de um artigo modelo ([guia importar / exportar](https://www.studiowombat.com/knowledge-base/how-to-export-fields-and-import-somewhere-else/)). Entre sites, **imagens** dos swatches podem precisar de upload e reassociacao manual. |
+| **Meta customizada** | Possivel em teoria com ferramentas de programacao, mas **fragil** em atualizacoes do plugin; preferir grupo global ou JSON. |
+
+### Imagens e precos
+
+- Com **swatches de imagem / cor**, o tema pode **trocar a imagem principal** ao selecionar uma opcao; alinha as URLs com as que importas no WooCommerce (`Images`) para nao haver conflitos visuais.
+- Precos adicionais por opcao APF configuram-se **no builder do plugin**, nao na coluna `Regular price` do CSV (salvo logica a medida).
+
+### Relacao com os exemplos deste documento
+
+Os exemplos CSV com `Attribute 1` = **Cor** e linhas `variation` ilustram **variacoes nativas** WooCommerce. Se a **cor** passar **inteiramente** para o APF, esse bloco pode ser **redesenhado** (ex.: so variacoes de **tamanho**, ou produto **simples** + APF).
 
 ---
 
@@ -220,13 +249,15 @@ Instalacao tipica: plugin **Code Snippets** (executar em todo o sitio) ou copiar
 | Nome | `Name` -- ver **Titulo do produto (convencao estamparia.pt)** |
 | Descricao breve | `Short description` |
 | Gramagem | **Peso** (`Weight` / `_weight`) em **kg** (ex.: 280 g -> `0.28`) + texto na **descricao** (`Short description` / `Description`); opcional atributo `Gramagem` na ficha |
-| Cores | Atributo global `Cor` + variacoes `variation` com `Attribute 1 name` / valor |
+| Cores | **APF (swatches):** grupo global por categoria / etiqueta ou import JSON por produto ([doc CSV APF](https://www.studiowombat.com/knowledge-base/does-advanced-product-fields-work-with-csv-bulk-import/)); **OU** Woo nativo: atributo `Cor` + `variation` -- ver **Advanced Product Fields (Extended) e cor** |
 | Fotos por variacao | Imagem da variacao + galeria do pai |
 | Marca VALENTO | Taxonomia `brand`, termo `valento`; ver secao **Marca VALENTO** |
 
 ---
 
 ## Exemplo CSV minimo (pai `variable` + 2 variacoes por cor)
+
+**Advanced Product Fields:** se as **cores** estiverem **apenas** no APF (swatches), este exemplo com atributo **Cor** e variacoes pode **nao** ser o teu fluxo; associa antes um **grupo global** por categoria ou importa JSON por produto. O CSV abaixo serve para **variacoes nativas** WooCommerce.
 
 Cenario: uma **Camiseta Basic BIKE**, duas cores, **precos diferentes** (Preto mais caro que Branco, como exemplo).
 
@@ -254,6 +285,7 @@ Notas:
 - **`Regular price`**: no exemplo, **5.80** (Preto) > **4.20** (Branco); na vitrine o WooCommerce mostra em geral **"desde 4.20"** (minimo), salvo personalizacao (ver secao acima).
 - **`Images`**: no pai, **duas URLs** entre aspas (por causa da virgula interna) = destaque + segunda imagem na galeria; em cada variacao, **uma URL** = foto dessa **cor**. Substituir por URLs reais ou ficheiros na Media antes de importar em producao.
 - Para **marcar automaticamente como VALENTO** sem coluna extra no CSV, usa o snippet em `docs/exemplos/snippets/valento-brand-importacao.php` (regra por SKU `VAL-` + taxonomia `brand`).
+- **Cores via APF:** nao ha coluna CSV oficial; ver **Advanced Product Fields (Extended) e cor** (grupo por categoria ou JSON).
 
 ---
 
