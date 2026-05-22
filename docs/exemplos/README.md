@@ -1,6 +1,18 @@
 # Ficheiros de exemplo (download para pasta local)
 
-Estes ficheiros estao no repositorio Git, na pasta **`docs/exemplos/`** (caminho completo no disco: `.../ia/docs/exemplos/`).
+Estes ficheiros estao no repositorio Git, na pasta **`docs/exemplos/`**.
+
+**Importante:** no GitHub estes ficheiros estao na branch **`cursor/woocommerce-estamparia-import-061a`**. Se clonaste o repo e estas em **`main`**, a pasta **`docs/exemplos`** pode **nao existir** ate fazeres merge dessa branch ou mudares de branch (ver Opcao 2 abaixo).
+
+## Abrir no GitHub (sem procurar pastas no disco)
+
+Pasta com todos os exemplos:
+
+https://github.com/cleitonpardim84/ia/tree/cursor/woocommerce-estamparia-import-061a/docs/exemplos
+
+Descarregar o CSV directamente (clicar com botao direito > Guardar ligacao como, ou abrir e Ctrl+S):
+
+https://raw.githubusercontent.com/cleitonpardim84/ia/cursor/woocommerce-estamparia-import-061a/docs/exemplos/woocommerce-variable-bike-exemplo.csv
 
 ## Opcao 1: Ja tens o projeto aberto no Cursor / disco
 
