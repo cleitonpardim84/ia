@@ -13,6 +13,15 @@ function buildTestContext() {
 }
 
 describe("Gestao Criatopo app", () => {
+  test("nao exibe opcao de criar usuario na tela de login", async () => {
+    const { agent } = buildTestContext();
+    const response = await agent.get("/login");
+
+    expect(response.status).toBe(200);
+    expect(response.text).not.toContain("Crie seu usuario");
+    expect(response.text).not.toContain("href=\"/register\"");
+  });
+
   test("redireciona para login quando nao autenticado", async () => {
     const { agent } = buildTestContext();
     const response = await agent.get("/dashboard");

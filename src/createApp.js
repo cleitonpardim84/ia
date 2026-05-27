@@ -21,9 +21,9 @@ function renderAuthPage({ title, action, buttonLabel, error }) {
     ? `<p style="color:#a00;">${escapeHtml(error)}</p>`
     : "";
   const switchLink =
-    action === "/login"
-      ? `<p>Sem conta? <a href="/register">Crie seu usuario</a></p>`
-      : `<p>Ja tem conta? <a href="/login">Entrar</a></p>`;
+    action === "/register"
+      ? `<p>Ja tem conta? <a href="/login">Entrar</a></p>`
+      : "";
 
   return `<h2>${escapeHtml(title)}</h2>
 ${errorHtml}
