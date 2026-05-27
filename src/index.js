@@ -15,7 +15,7 @@ function getDatabaseConfig() {
 }
 
 async function buildStore() {
-  const storeMode = (process.env.STORE_MODE ?? "mysql").toLowerCase();
+  const storeMode = (process.env.STORE_MODE ?? "memory").toLowerCase();
   if (storeMode === "memory") {
     return createMemoryStore();
   }
