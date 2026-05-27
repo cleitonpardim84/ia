@@ -2,6 +2,7 @@ const mysql = require("mysql2/promise");
 const { createApp } = require("./createApp");
 const { createMemoryStore } = require("./store/memoryStore");
 const { createMySqlStore } = require("./store/mysqlStore");
+const { createSessionStore } = require("./sessionStore");
 require("dotenv").config();
 
 function getDatabaseConfig() {
@@ -32,8 +33,16 @@ async function buildStore() {
 
 async function startServer() {
   const store = await buildStore();
+  const sessionPersistence = createSessionStore({
+    sessionStoreMode: process.env.SESSION_STORE_MODE ?? "auto",
+    persistenceMode: store.mode,
+    databaseConfig: getDatabaseConfig(),
+  });
+
   const app = createApp({
     store,
+    sessionStore: sessionPersistence.store,
+    sessionStoreMode: sessionPersistence.mode,
     sessionSecret: process.env.SESSION_SECRET ?? "trocar-em-producao",
   });
 
@@ -41,6 +50,7 @@ async function startServer() {
   app.listen(port, () => {
     console.log(`Gestao Criatopo ativa em http://localhost:${port}`);
     console.log(`Modo de persistencia: ${store.mode}`);
+    console.log(`Store de sessao: ${sessionPersistence.mode}`);
   });
 }
 

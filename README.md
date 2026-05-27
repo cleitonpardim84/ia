@@ -48,12 +48,19 @@ Passos:
 3. Defina variaveis de ambiente:
    - `PORT=3000`
    - `STORE_MODE=memory` (ou `mysql` em producao)
+   - `SESSION_STORE_MODE=auto` (use `mysql` em producao com banco)
    - `SESSION_SECRET=<valor-forte>`
    - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (somente se `STORE_MODE=mysql`)
 4. Configure o comando de build/start:
    - Build: `npm install`
    - Start: `npm start`
 5. Se usar MySQL, garanta que o banco esteja criado e acessivel.
+
+### Sessao em producao
+
+- O projeto suporta `SESSION_STORE_MODE=auto|memory|mysql`.
+- Recomendado em producao: `SESSION_STORE_MODE=mysql` para persistencia de sessao.
+- Em modo inicial sem banco, use `SESSION_STORE_MODE=memory`.
 
 ## Testes
 

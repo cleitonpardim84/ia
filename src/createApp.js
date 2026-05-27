@@ -120,24 +120,38 @@ function renderDashboard({ user, employees, clients }) {
 </section>`;
 }
 
-function createApp({ store, sessionSecret }) {
+function createApp({ store, sessionSecret, sessionStore, sessionStoreMode = "memory" }) {
   if (!store) {
     throw new Error("Store obrigatoria para criar a aplicacao.");
   }
 
   const app = express();
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isProduction) {
+    app.set("trust proxy", 1);
+  }
+
   app.use(express.urlencoded({ extended: false }));
+  const sessionConfig = {
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProduction,
+    },
+  };
+  if (sessionStore) {
+    sessionConfig.store = sessionStore;
+  }
+
   app.use(
-    session({
-      secret: sessionSecret,
-      resave: false,
-      saveUninitialized: false,
-      cookie: { httpOnly: true, sameSite: "lax" },
-    }),
+    session(sessionConfig),
   );
 
   app.get("/health", (req, res) => {
-    res.json({ status: "ok", store: store.mode });
+    res.json({ status: "ok", store: store.mode, session_store: sessionStoreMode });
   });
 
   app.get("/", (req, res) => {

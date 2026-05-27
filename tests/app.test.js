@@ -13,6 +13,18 @@ function buildTestContext() {
 }
 
 describe("Gestao Criatopo app", () => {
+  test("exibe saude da aplicacao com store de sessao", async () => {
+    const { agent } = buildTestContext();
+    const response = await agent.get("/health");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      status: "ok",
+      store: "memory",
+      session_store: "memory",
+    });
+  });
+
   test("nao exibe opcao de criar usuario na tela de login", async () => {
     const { agent } = buildTestContext();
     const response = await agent.get("/login");
