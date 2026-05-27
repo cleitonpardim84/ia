@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestao da Empresa | Publicidade e DTF</title>
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Empresa com 2 departamentos</p>
+        <h1>Gestao leve para Publicidade e Estamparia DTF</h1>
+        <p class="lead">
+          Administrador, comercial, produtos, producao e financeiro em um unico
+          fluxo visual.
+        </p>
+      </div>
+      <aside class="status-card" aria-label="Resumo do sistema">
+        <span class="status-dot"></span>
+        <strong>Fluxo MVP pronto para Hostinger</strong>
+        <small>Interface web + schema MySQL para importacao</small>
+      </aside>
+    </header>
+
+    <main>
+      <nav class="module-tabs" aria-label="Modulos do sistema">
+        <button class="tab is-active" data-module="admin">01P Administrador</button>
+        <button class="tab" data-module="commercial">02P Comercial</button>
+        <button class="tab" data-module="products">03P Produtos</button>
+        <button class="tab" data-module="production">04P Producao</button>
+        <button class="tab" data-module="finance">05P Financeiro</button>
+      </nav>
+
+      <section class="dashboard-grid">
+        <article class="panel module-panel is-active" id="admin" aria-labelledby="admin-title">
+          <div class="section-heading">
+            <p class="eyebrow">Permissoes e comunicacao</p>
+            <h2 id="admin-title">Modulo Administrador</h2>
+          </div>
+          <div class="two-columns">
+            <form class="card form-card" id="user-form">
+              <h3>Criar novo usuario</h3>
+              <label>
+                Nome do funcionario
+                <input type="text" name="name" value="Ana Comercial" required>
+              </label>
+              <label>
+                Departamento
+                <select name="department">
+                  <option>Publicidade</option>
+                  <option>Estamparia DTF</option>
+                  <option>Financeiro</option>
+                </select>
+              </label>
+              <fieldset>
+                <legend>Modulos permitidos</legend>
+                <label><input type="checkbox" checked> Comercial</label>
+                <label><input type="checkbox"> Produtos</label>
+                <label><input type="checkbox" checked> Producao</label>
+                <label><input type="checkbox"> Financeiro</label>
+              </fieldset>
+              <button type="submit">Guardar permissao</button>
+              <p class="form-feedback" id="user-feedback" role="status"></p>
+            </form>
+
+            <div class="card">
+              <h3>Chat entre modulos</h3>
+              <div class="chat-box" aria-live="polite">
+                <p><strong>Comercial:</strong> Orcamento #102 aprovado pelo cliente.</p>
+                <p><strong>Producao:</strong> Recebido. Design inicia hoje.</p>
+              </div>
+              <label>
+                Enviar ficheiro
+                <input type="file">
+              </label>
+              <button type="button" id="notify-button">Enviar notificacao</button>
+              <p class="notice" id="notify-output">Nenhuma notificacao nova.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel module-panel" id="commercial" aria-labelledby="commercial-title">
+          <div class="section-heading">
+            <p class="eyebrow">Vendas e orcamentos</p>
+            <h2 id="commercial-title">Modulo Comercial Publicidade</h2>
+          </div>
+          <div class="pipeline">
+            <div class="stage">
+              <span>1</span>
+              <strong>Lead</strong>
+              <p>Cliente pede proposta.</p>
+            </div>
+            <div class="stage">
+              <span>2</span>
+              <strong>Orcamento</strong>
+              <p>Produto, fornecedor, cor, tamanho e quantidade.</p>
+            </div>
+            <div class="stage">
+              <span>3</span>
+              <strong>Aprovacao</strong>
+              <p>Link automatico para o cliente.</p>
+            </div>
+            <div class="stage">
+              <span>4</span>
+              <strong>Producao</strong>
+              <p>Folha de obra sem valor.</p>
+            </div>
+          </div>
+
+          <div class="two-columns">
+            <form class="card form-card" id="quote-form">
+              <h3>Simulador de impressao e IVA</h3>
+              <label>
+                Custo
+                <input type="number" name="cost" min="0" step="0.01" value="42.50">
+              </label>
+              <label>
+                Margem RKW (%)
+                <input type="number" name="margin" min="0" step="1" value="35">
+              </label>
+              <label>
+                IVA
+                <select name="vat">
+                  <option value="0">Sem IVA</option>
+                  <option value="23" selected>Com IVA 23%</option>
+                </select>
+              </label>
+              <button type="submit">Calcular preco</button>
+            </form>
+            <div class="card result-card">
+              <h3>Resumo do orcamento</h3>
+              <p>Preset: lona publicitaria 2x1 m</p>
+              <strong id="quote-result">Preco venda: 70,58 EUR</strong>
+              <small>Pronto para enviar ao cliente e gerar folha de obra.</small>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel module-panel" id="products" aria-labelledby="products-title">
+          <div class="section-heading">
+            <p class="eyebrow">Materiais e fornecedores</p>
+            <h2 id="products-title">Modulo Produtos Publicidade</h2>
+          </div>
+          <div class="cards-list">
+            <article class="card product-card">
+              <span class="pill">Vinil</span>
+              <h3>Vinil monomerico branco</h3>
+              <p>Marca: Oracal | Medida: 1,37 m | Espessura: 80 microns</p>
+              <strong>Custo: 2,40 EUR/m | Venda: 4,25 EUR/m + IVA</strong>
+            </article>
+            <article class="card product-card">
+              <span class="pill">DTF</span>
+              <h3>Filme PET DTF premium</h3>
+              <p>Fabricante: DTF Pro | Cor: transparente | Rolo: 60 cm x 100 m</p>
+              <strong>Custo: 0,88 EUR/m | Venda: 1,65 EUR/m + IVA</strong>
+            </article>
+            <article class="card product-card">
+              <span class="pill">Lona</span>
+              <h3>Lona frontlight 510 g</h3>
+              <p>Categoria: Impressao grande formato | Fornecedor: GrafiStock</p>
+              <strong>Custo: 3,10 EUR/m2 | Venda: 6,90 EUR/m2 + IVA</strong>
+            </article>
+          </div>
+        </article>
+
+        <article class="panel module-panel" id="production" aria-labelledby="production-title">
+          <div class="section-heading">
+            <p class="eyebrow">Kanban e roteiro produtivo</p>
+            <h2 id="production-title">Modulo Producao Publicidade</h2>
+          </div>
+          <div class="kanban" id="kanban-board">
+            <section class="kanban-column">
+              <h3>Em aprovacao</h3>
+              <article class="job-card" draggable="true">
+                <strong>#102 Fachada loja</strong>
+                <p>Folha de obra recebida sem valores.</p>
+                <small>Entrega CTT prevista: 29/05</small>
+              </article>
+            </section>
+            <section class="kanban-column">
+              <h3>Design</h3>
+              <article class="job-card" draggable="true">
+                <strong>#101 DTF t-shirts</strong>
+                <p>Ficheiros anexados pelo comercial.</p>
+                <small>Previsto: 2h | Realizado: 1h20</small>
+              </article>
+            </section>
+            <section class="kanban-column">
+              <h3>Impressao</h3>
+            </section>
+            <section class="kanban-column">
+              <h3>Laminadora</h3>
+            </section>
+            <section class="kanban-column">
+              <h3>Pronto/Montagem</h3>
+            </section>
+          </div>
+        </article>
+
+        <article class="panel module-panel" id="finance" aria-labelledby="finance-title">
+          <div class="section-heading">
+            <p class="eyebrow">Documentos e caixa</p>
+            <h2 id="finance-title">Modulo Financeiro</h2>
+          </div>
+          <div class="finance-grid">
+            <article class="metric-card">
+              <span>Contas a receber</span>
+              <strong>4.820,00 EUR</strong>
+              <small>3 faturas aguardando pagamento</small>
+            </article>
+            <article class="metric-card">
+              <span>Contas a pagar</span>
+              <strong>1.275,40 EUR</strong>
+              <small>Leitura futura por IA Gemini</small>
+            </article>
+            <article class="metric-card">
+              <span>Fluxo de caixa</span>
+              <strong>+2.980,60 EUR</strong>
+              <small>Previsao mensal</small>
+            </article>
+            <article class="metric-card">
+              <span>Creditos</span>
+              <strong>620,00 EUR</strong>
+              <small>Saldo de clientes</small>
+            </article>
+          </div>
+          <div class="card invoice-card">
+            <h3>Emissao de fatura/orcamento</h3>
+            <p>Modelo preparado para logotipo, informacoes da empresa, cliente,
+              linhas de produto, IVA e observacoes.</p>
+            <button type="button">Gerar documento</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer>
+      <p>Base inicial para evoluir para backend PHP/MySQL e importacao na Hostinger.</p>
+    </footer>
+
+    <script src="assets/app.js"></script>
+  </body>
+</html>
