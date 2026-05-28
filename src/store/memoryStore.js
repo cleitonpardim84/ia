@@ -2,9 +2,13 @@ function createMemoryStore() {
   const users = [];
   const employees = [];
   const clients = [];
+  const suppliers = [];
+  const tasks = [];
   let userId = 1;
   let employeeId = 1;
   let clientId = 1;
+  let supplierId = 1;
+  let taskId = 1;
 
   return {
     mode: "memory",
@@ -56,6 +60,47 @@ function createMemoryStore() {
       const index = clients.findIndex((client) => client.id === id);
       if (index !== -1) {
         clients.splice(index, 1);
+      }
+    },
+
+    async listSuppliers() {
+      return [...suppliers];
+    },
+
+    async createSupplier({ name, contact, service }) {
+      suppliers.push({
+        id: supplierId++,
+        name,
+        contact,
+        service,
+      });
+    },
+
+    async deleteSupplier(id) {
+      const index = suppliers.findIndex((supplier) => supplier.id === id);
+      if (index !== -1) {
+        suppliers.splice(index, 1);
+      }
+    },
+
+    async listTasks() {
+      return [...tasks];
+    },
+
+    async createTask({ title, owner, status, dueDate }) {
+      tasks.push({
+        id: taskId++,
+        title,
+        owner,
+        status,
+        due_date: dueDate,
+      });
+    },
+
+    async deleteTask(id) {
+      const index = tasks.findIndex((task) => task.id === id);
+      if (index !== -1) {
+        tasks.splice(index, 1);
       }
     },
   };

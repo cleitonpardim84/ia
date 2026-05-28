@@ -58,6 +58,42 @@ function createMySqlStore(pool) {
     async deleteClient(id) {
       await pool.query("DELETE FROM clients WHERE id = ?", [id]);
     },
+
+    async listSuppliers() {
+      const [rows] = await pool.query(
+        "SELECT id, name, contact, service FROM suppliers ORDER BY id DESC",
+      );
+      return rows;
+    },
+
+    async createSupplier({ name, contact, service }) {
+      await pool.query(
+        "INSERT INTO suppliers (name, contact, service) VALUES (?, ?, ?)",
+        [name, contact || null, service || null],
+      );
+    },
+
+    async deleteSupplier(id) {
+      await pool.query("DELETE FROM suppliers WHERE id = ?", [id]);
+    },
+
+    async listTasks() {
+      const [rows] = await pool.query(
+        "SELECT id, title, owner, status, due_date FROM tasks ORDER BY id DESC",
+      );
+      return rows;
+    },
+
+    async createTask({ title, owner, status, dueDate }) {
+      await pool.query(
+        "INSERT INTO tasks (title, owner, status, due_date) VALUES (?, ?, ?, ?)",
+        [title, owner || null, status || "Pendente", dueDate || null],
+      );
+    },
+
+    async deleteTask(id) {
+      await pool.query("DELETE FROM tasks WHERE id = ?", [id]);
+    },
   };
 }
 

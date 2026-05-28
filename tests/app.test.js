@@ -42,7 +42,7 @@ describe("Gestao Criatopo app", () => {
     expect(response.headers.location).toBe("/login");
   });
 
-  test("permite cadastro, login e gestao de funcionarios/clientes", async () => {
+  test("permite cadastro, login e gestao completa no dashboard", async () => {
     const { agent } = buildTestContext();
 
     const registerResponse = await agent.post("/register").type("form").send({
@@ -66,10 +66,28 @@ describe("Gestao Criatopo app", () => {
     });
     expect(createClientResponse.status).toBe(302);
 
+    const createSupplierResponse = await agent.post("/suppliers").type("form").send({
+      name: "Global Office",
+      contact: "suporte@globaloffice.com",
+      service: "Materiais",
+    });
+    expect(createSupplierResponse.status).toBe(302);
+
+    const createTaskResponse = await agent.post("/tasks").type("form").send({
+      title: "Preparar proposta comercial",
+      owner: "Ana Souza",
+      status: "Em andamento",
+      dueDate: "2026-06-01",
+    });
+    expect(createTaskResponse.status).toBe(302);
+
     const dashboardResponse = await agent.get("/dashboard");
     expect(dashboardResponse.status).toBe(200);
     expect(dashboardResponse.text).toContain("Gestão Criatopo");
     expect(dashboardResponse.text).toContain("Ana Souza");
     expect(dashboardResponse.text).toContain("Carlos Lima");
+    expect(dashboardResponse.text).toContain("Global Office");
+    expect(dashboardResponse.text).toContain("Preparar proposta comercial");
+    expect(dashboardResponse.text).toContain("Resumo operacional");
   });
 });

@@ -7,6 +7,8 @@ MVP de site de gestão empresarial em Node.js, com autenticação, gestão de fu
 - Login e cadastro de usuários.
 - Painel administrativo com gestão de funcionários.
 - Painel administrativo com gestão de clientes.
+- Painel administrativo com gestão de fornecedores.
+- Painel administrativo com tarefas operacionais.
 - Endpoint de saúde em `/health`.
 - Persistencia opcional em MySQL (modo padrao sem banco usa memoria).
 
@@ -83,3 +85,4 @@ O nome visual da aplicacao foi configurado como **Gestao Criatopo**.
 - `src/createApp.js`: rotas, sessão e regras de acesso.
 - `src/store/mysqlStore.js`: camada de persistência MySQL.
 - `src/db/schema.sql`: script SQL de criação das tabelas.
+- `src/sessionStore.js`: estrategia de sessao para memoria/MySQL.

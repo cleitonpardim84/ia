@@ -35,21 +35,48 @@ ${errorHtml}
 ${switchLink}`;
 }
 
-function renderRows(items, rowRenderer, emptyText) {
+function renderRows(items, rowRenderer, emptyText, colspan = 5) {
   if (items.length === 0) {
-    return `<tr><td colspan="5">${escapeHtml(emptyText)}</td></tr>`;
+    return `<tr><td colspan="${colspan}">${escapeHtml(emptyText)}</td></tr>`;
   }
   return items.map(rowRenderer).join("");
 }
 
-function renderDashboard({ user, employees, clients }) {
+function renderDashboard({ user, employees, clients, suppliers, tasks }) {
+  const formatTaskDate = (rawDate) => {
+    if (!rawDate) {
+      return "";
+    }
+    const date = new Date(rawDate);
+    if (Number.isNaN(date.getTime())) {
+      return escapeHtml(String(rawDate));
+    }
+    return escapeHtml(date.toISOString().slice(0, 10));
+  };
+
   return `
 <h2>Painel de Gestao</h2>
-<p>Controle interno de funcionarios e carteira de clientes para ${escapeHtml(APP_NAME)}.</p>
+<p>Controle completo de operacao, relacionamento e execucao para ${escapeHtml(APP_NAME)}.</p>
 <nav>
   <a href="/dashboard">Atualizar painel</a>
   <a href="/health">Ver status do servico</a>
 </nav>
+<section>
+  <h3>Resumo operacional</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Modulo</th><th>Registros ativos</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Funcionarios</td><td>${employees.length}</td></tr>
+      <tr><td>Clientes</td><td>${clients.length}</td></tr>
+      <tr><td>Fornecedores</td><td>${suppliers.length}</td></tr>
+      <tr><td>Tarefas</td><td>${tasks.length}</td></tr>
+    </tbody>
+  </table>
+</section>
 <section>
   <h3>Funcionarios</h3>
   <form method="post" action="/employees">
@@ -114,6 +141,77 @@ function renderDashboard({ user, employees, clients }) {
           </td>
         </tr>`,
         "Nenhum cliente cadastrado.",
+      )}
+    </tbody>
+  </table>
+</section>
+<section>
+  <h3>Fornecedores</h3>
+  <form method="post" action="/suppliers">
+    <input name="name" placeholder="Nome" required />
+    <input name="contact" placeholder="Contato" />
+    <input name="service" placeholder="Servico principal" />
+    <button type="submit">Cadastrar fornecedor</button>
+  </form>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Nome</th><th>Contato</th><th>Servico</th><th>Acoes</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${renderRows(
+        suppliers,
+        (supplier) => `<tr>
+          <td>${supplier.id}</td>
+          <td>${escapeHtml(supplier.name)}</td>
+          <td>${escapeHtml(supplier.contact ?? "")}</td>
+          <td>${escapeHtml(supplier.service ?? "")}</td>
+          <td class="row-actions">
+            <form method="post" action="/suppliers/delete">
+              <input type="hidden" name="id" value="${supplier.id}" />
+              <button type="submit">Remover</button>
+            </form>
+          </td>
+        </tr>`,
+        "Nenhum fornecedor cadastrado.",
+      )}
+    </tbody>
+  </table>
+</section>
+<section>
+  <h3>Tarefas operacionais</h3>
+  <form method="post" action="/tasks">
+    <input name="title" placeholder="Titulo" required />
+    <input name="owner" placeholder="Responsavel" />
+    <input name="status" placeholder="Status (Pendente, Em andamento, Concluida)" />
+    <input name="dueDate" type="date" />
+    <button type="submit">Cadastrar tarefa</button>
+  </form>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Titulo</th><th>Responsavel</th><th>Status</th><th>Prazo</th><th>Acoes</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${renderRows(
+        tasks,
+        (task) => `<tr>
+          <td>${task.id}</td>
+          <td>${escapeHtml(task.title)}</td>
+          <td>${escapeHtml(task.owner ?? "")}</td>
+          <td>${escapeHtml(task.status ?? "")}</td>
+          <td>${formatTaskDate(task.due_date)}</td>
+          <td class="row-actions">
+            <form method="post" action="/tasks/delete">
+              <input type="hidden" name="id" value="${task.id}" />
+              <button type="submit">Remover</button>
+            </form>
+          </td>
+        </tr>`,
+        "Nenhuma tarefa cadastrada.",
+        6,
       )}
     </tbody>
   </table>
@@ -244,9 +342,11 @@ function createApp({ store, sessionSecret, sessionStore, sessionStoreMode = "mem
   });
 
   app.get("/dashboard", requireAuth, async (req, res) => {
-    const [employees, clients] = await Promise.all([
+    const [employees, clients, suppliers, tasks] = await Promise.all([
       store.listEmployees(),
       store.listClients(),
+      store.listSuppliers(),
+      store.listTasks(),
     ]);
 
     res.send(
@@ -258,6 +358,8 @@ function createApp({ store, sessionSecret, sessionStore, sessionStoreMode = "mem
           user: req.session.user,
           employees,
           clients,
+          suppliers,
+          tasks,
         }),
       }),
     );
@@ -305,6 +407,56 @@ function createApp({ store, sessionSecret, sessionStore, sessionStoreMode = "mem
       await store.deleteClient(id);
     }
     res.redirect("/dashboard?notice=Cliente removido.");
+  });
+
+  app.post("/suppliers", requireAuth, async (req, res) => {
+    const name = String(req.body.name ?? "").trim();
+    const contact = String(req.body.contact ?? "").trim();
+    const service = String(req.body.service ?? "").trim();
+
+    if (!name) {
+      res.redirect("/dashboard?notice=Nome do fornecedor e obrigatorio.");
+      return;
+    }
+
+    await store.createSupplier({ name, contact, service });
+    res.redirect("/dashboard?notice=Fornecedor cadastrado.");
+  });
+
+  app.post("/suppliers/delete", requireAuth, async (req, res) => {
+    const id = parseInteger(req.body.id);
+    if (id !== null) {
+      await store.deleteSupplier(id);
+    }
+    res.redirect("/dashboard?notice=Fornecedor removido.");
+  });
+
+  app.post("/tasks", requireAuth, async (req, res) => {
+    const title = String(req.body.title ?? "").trim();
+    const owner = String(req.body.owner ?? "").trim();
+    const status = String(req.body.status ?? "").trim();
+    const dueDate = String(req.body.dueDate ?? "").trim();
+
+    if (!title) {
+      res.redirect("/dashboard?notice=Titulo da tarefa e obrigatorio.");
+      return;
+    }
+
+    await store.createTask({
+      title,
+      owner,
+      status: status || "Pendente",
+      dueDate,
+    });
+    res.redirect("/dashboard?notice=Tarefa cadastrada.");
+  });
+
+  app.post("/tasks/delete", requireAuth, async (req, res) => {
+    const id = parseInteger(req.body.id);
+    if (id !== null) {
+      await store.deleteTask(id);
+    }
+    res.redirect("/dashboard?notice=Tarefa removida.");
   });
 
   return app;
