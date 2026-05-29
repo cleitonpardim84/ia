@@ -37,3 +37,11 @@ Use mensagens curtas e diretas, por exemplo:
 
 - `docs: cria AGENTS.md com diretrizes para agentes`
 - `docs: atualiza instrucoes de contribuicao no AGENTS.md`
+
+## Cursor Cloud specific instructions
+
+- This is currently a blank repository (no application code, no dependencies, no services).
+- No update script is needed; there are no dependencies to install.
+- No lint, test, or build commands exist yet. When application code is added, update this section with the relevant commands.
+- To clone and work locally: `git clone <repo-url> && cd ia`.
+- The `AGENTS.md` file contains contribution guidelines in Portuguese (pt-BR) that all agents must follow.
